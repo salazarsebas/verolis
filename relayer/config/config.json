@@ -1,0 +1,73 @@
+{
+  "relayers": [
+    {
+      "id": "stellar-testnet",
+      "name": "Stellar Testnet Relayer",
+      "network": "testnet",
+      "paused": false,
+      "network_type": "stellar",
+      "signer_id": "stellar-testnet-signer",
+      "policies": {
+        "fee_payment_strategy": "relayer",
+        "min_balance": 0,
+        "max_transaction_value": "10000000000",
+        "allowed_operations": [
+          "payment",
+          "pathPaymentStrictSend",
+          "invokeHostFunction"
+        ],
+        "sponsored_transactions": true
+      }
+    }
+  ],
+  "signers": [
+    {
+      "id": "stellar-testnet-signer",
+      "type": "local",
+      "network": "testnet",
+      "config": {
+        "path": "keys/stellar-testnet-signer.json",
+        "passphrase": {
+          "type": "env",
+          "value": "KEYSTORE_PASSPHRASE"
+        }
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "id": "x402",
+      "path": "plugins/x402/index.ts",
+      "emit_logs": false,
+      "emit_traces": false,
+      "raw_response": true,
+      "forward_logs": true,
+      "allow_get_invocation": true,
+      "timeout": 30,
+      "config": {
+        "networks": [
+          {
+            "network": "stellar:testnet",
+            "type": "stellar",
+            "relayer_id": "stellar-testnet",
+            "assets": [
+              "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+            ],
+            "channel_service_api_url": "https://channels.openzeppelin.com/testnet",
+            "channel_service_api_key": "${CHANNELS_API_KEY:-}",
+            "channel_service_fund_relayer_address": "${CHANNELS_FUND_ADDRESS:-}"
+          }
+        ]
+      }
+    }
+  ],
+  "notifications": [],
+  "metrics": {
+    "enabled": true,
+    "port": 9090
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  }
+}

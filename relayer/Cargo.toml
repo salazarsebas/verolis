@@ -1,0 +1,7 @@
+[package]
+name = "stellar-x402-relayer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# OpenZeppelin Relayer dependencies will be added via the Docker image

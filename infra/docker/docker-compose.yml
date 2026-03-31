@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: stellar-x402-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  relayer:
+    build:
+      context: ../../relayer
+      dockerfile: Dockerfile
+    container_name: stellar-x402-relayer
+    environment:
+      - DATABASE_URL=redis://redis:6379
+      - API_PORT=8080
+      - LOG_LEVEL=info
+      - METRICS_ENABLED=true
+      - KEYSTORE_PASSPHRASE=${KEYSTORE_PASSPHRASE:-changeme}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../relayer/config/config.json:/app/config/config.json
+      - ../../relayer/config/keys:/app/config/keys
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    container_name: stellar-x402-api
+    environment:
+      - NODE_ENV=development
+      - PORT=4021
+      - STELLAR_ADDRESS=${STELLAR_ADDRESS:-}
+      - FACILITATOR_URL=http://relayer:8080/api/v1/plugins/x402/call
+      - RELAYER_API_KEY=${RELAYER_API_KEY:-test-api-key}
+      - NETWORK=stellar:testnet
+    ports:
+      - "4021:4021"
+    volumes:
+      - ../../apps/api:/app
+      - /app/node_modules
+    depends_on:
+      - relayer
+
+volumes:
+  redis_data:
