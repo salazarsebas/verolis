@@ -4,12 +4,13 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install dependencies
-COPY package*.json ./
+COPY apps/api/package*.json ./
 RUN npm install
 
-# Copy source code (exclude tests)
-COPY src/index.ts ./src/index.ts
-COPY tsconfig.json ./
+# Copy source code and shared packages
+COPY apps/api/src ./src
+COPY packages /packages
+COPY apps/api/tsconfig.json ./
 
 # Build (tests are excluded via tsconfig)
 RUN npm run build

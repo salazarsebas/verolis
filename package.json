@@ -1,14 +1,20 @@
 {
-  "name": "stellar-x402",
+  "name": "verolis",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build --webpack",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "vitest",
-    "test:ui": "vitest --ui"
+    "dev": "next dev apps/web",
+    "dev:web": "next dev apps/web",
+    "dev:api": "npm run dev --prefix apps/api",
+    "build": "npm run build:web && npm run build:api",
+    "build:web": "next build apps/web --webpack",
+    "build:api": "npm run build --prefix apps/api",
+    "start": "next start apps/web",
+    "lint": "eslint apps/web apps/api",
+    "test": "vitest --config apps/web/vitest.config.ts --run && npm run test:run --prefix apps/api",
+    "test:web": "vitest --config apps/web/vitest.config.ts --run",
+    "test:api": "npm run test:run --prefix apps/api",
+    "test:ui": "vitest --config apps/web/vitest.config.ts --ui"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

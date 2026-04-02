@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BadgeDollarSign, Building2, ShieldCheck, Waves, WalletCards } from "lucide-react";
+import { institutionalPartners, monetizedCapabilities } from "@verolis/institutional-domain";
 import { Button } from "@/components/ui/button";
-import { institutionalPartners, monetizedCapabilities } from "@/lib/institutional/partners";
 
 const featuredPartners = institutionalPartners.slice(0, 7);
 const topPartners = [...institutionalPartners]

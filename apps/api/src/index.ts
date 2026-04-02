@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
-import { institutionalCatalog, paymentRequirements } from "./institutionalCatalog";
+import { institutionalCatalog, paymentRequirements } from "@verolis/institutional-domain";
 
 dotenv.config();
 
@@ -12,7 +12,7 @@ const PORT = Number(process.env.API_PORT || process.env.PORT || 4021);
 const stellarAddress = process.env.STELLAR_ADDRESS;
 const facilitatorUrl = process.env.FACILITATOR_URL;
 const relayerApiKey = process.env.RELAYER_API_KEY || "test-api-key";
-const network = process.env.NETWORK || "stellar:testnet";
+const network = (process.env.NETWORK || "stellar:testnet") as `${string}:${string}`;
 
 if (!facilitatorUrl) {
   console.error("FACILITATOR_URL is required");
@@ -28,6 +28,8 @@ const facilitatorClient = new HTTPFacilitatorClient({
   }),
 });
 
+type RoutesConfig = Parameters<typeof paymentMiddleware>[0];
+
 const resolvedPaymentRequirements = Object.fromEntries(
   Object.entries(paymentRequirements).map(([route, config]) => [
     route,
@@ -40,7 +42,7 @@ const resolvedPaymentRequirements = Object.fromEntries(
       })),
     },
   ])
-);
+) as RoutesConfig;
 
 export function listPartners(filters?: { category?: string; asset?: string }) {
   return institutionalCatalog.filter((partner) => {

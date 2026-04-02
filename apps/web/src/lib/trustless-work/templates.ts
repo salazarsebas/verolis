@@ -1,4 +1,4 @@
-import { institutionalPartners } from "@/lib/institutional/partners";
+import { institutionalPartners } from "@verolis/institutional-domain";
 import type { InstitutionalEscrowBlueprint } from "./types";
 
 const defaultMilestoneWeights = [0.2, 0.3, 0.25, 0.25];

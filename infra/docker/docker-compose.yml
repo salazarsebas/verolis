@@ -16,7 +16,7 @@ services:
 
   relayer:
     build:
-      context: ../../relayer
+      context: ../../platform/relayer
       dockerfile: Dockerfile
     container_name: stellar-x402-relayer
     environment:
@@ -28,8 +28,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ../../relayer/config/config.json:/app/config/config.json
-      - ../../relayer/config/keys:/app/config/keys
+      - ../../platform/relayer/config/config.json:/app/config/config.json
+      - ../../platform/relayer/config/keys:/app/config/keys
     depends_on:
       redis:
         condition: service_healthy
@@ -41,8 +41,8 @@ services:
 
   api:
     build:
-      context: ../../apps/api
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: apps/api/Dockerfile
     container_name: stellar-x402-api
     environment:
       - NODE_ENV=development

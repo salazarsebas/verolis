@@ -1,8 +1,8 @@
 "use client";
 
+import { institutionalPartners, monetizedCapabilities } from "@verolis/institutional-domain";
 import { Badge } from "@/components/ui/badge";
 import { ResourceAccess } from "@/components/paywall/resource-access";
-import { institutionalPartners, monetizedCapabilities } from "@/lib/institutional/partners";
 import { getBrowserX402SupportState } from "@/lib/x402/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

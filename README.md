@@ -77,20 +77,22 @@ Stellar
 ## Repository Layout
 
 ```text
-src/
-  app/                  Next.js routes
-  components/           UI, dashboard, and paywall components
-  lib/                  x402 client helpers, institutional services, trustless-work flows
+apps/
+  web/
+    src/                Next.js routes, components, and app-side libraries
+    public/             Static assets
+  api/
+    src/                Express API and institutional payment catalog
 
-apps/api/
-  src/                  Express API and institutional payment catalog
+packages/
+  institutional-domain/ Shared partner catalog, pricing, and domain types
 
-contracts/
-  smart-account/        Soroban smart-account config
-
-relayer/
-  plugins/x402/         Facilitator plugin setup
-  config/               Relayer runtime configuration
+platform/
+  contracts/
+    smart-account/      Soroban smart-account config
+  relayer/
+    plugins/x402/       Facilitator plugin setup
+    config/             Relayer runtime configuration
 
 infra/docker/           Local infrastructure orchestration
 docs/                   Product, architecture, deployment, and integration docs
@@ -137,12 +139,11 @@ docker compose up -d
 ### 4. Start the applications
 
 ```bash
-# frontend
+# web
 npm run dev
 
 # api
-cd apps/api
-npm run dev
+npm run dev:api
 ```
 
 ### One-command bootstrap
@@ -159,6 +160,7 @@ What is solid today:
 - Paid endpoint model aligned to real buyer personas
 - Frontend demo and dashboard flows
 - API tests
+- Shared institutional domain package consumed by web and API
 - Relayer and Docker scaffolding
 - Trustless Work payload and template helpers
 

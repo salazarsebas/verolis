@@ -13,7 +13,7 @@ Verolis combines product storytelling, request-priced API monetization, and Stel
 
 ### Web App
 
-Path: `src/`
+Path: `apps/web/src/`
 
 Responsibilities:
 
@@ -24,12 +24,12 @@ Responsibilities:
 
 Key folders:
 
-- `src/app/`: page routes
-- `src/components/paywall/`: payment-gated UI
-- `src/components/dashboard/`: metrics and operator views
-- `src/lib/x402/`: browser helper utilities
-- `src/lib/trustless-work/`: escrow payloads and execution helpers
-- `src/lib/institutional/`: institutional services and domain helpers
+- `apps/web/src/app/`: page routes
+- `apps/web/src/components/paywall/`: payment-gated UI
+- `apps/web/src/components/dashboard/`: metrics and operator views
+- `apps/web/src/lib/x402/`: browser helper utilities
+- `apps/web/src/lib/trustless-work/`: escrow payloads and execution helpers
+- `apps/web/src/lib/institutional/`: institutional services and domain helpers
 
 ### API
 
@@ -46,9 +46,19 @@ Current limitation:
 
 - The API uses curated in-repo data rather than live institutional or compliance providers.
 
+### Shared Domain Package
+
+Path: `packages/institutional-domain/`
+
+Responsibilities:
+
+- Centralize partner metadata, monetized capabilities, and payment requirement definitions
+- Eliminate duplicated business-domain constants between the web app and API
+- Provide a clean first step toward a real package-based monorepo
+
 ### Relayer
 
-Path: `relayer/`
+Path: `platform/relayer/`
 
 Responsibilities:
 
@@ -58,7 +68,7 @@ Responsibilities:
 
 ### Contracts
 
-Path: `contracts/smart-account/`
+Path: `platform/contracts/smart-account/`
 
 Responsibilities:
 
@@ -98,21 +108,22 @@ Current limitation:
 ```text
 apps/
   web/
+    src/
+    public/
   api/
-  docs-site/              optional
+    src/
 
 packages/
-  institutional-domain/   shared catalog, types, pricing, schemas
-  ui/                     shared presentational system
-  x402-client/            reusable payment utilities
-  trustless-work/         escrow builders and adapters
+  institutional-domain/
 
-infra/
-  docker/
+platform/
+  contracts/
+    smart-account/
   relayer/
 
-contracts/
-  smart-account/
+docs/
+infra/
+scripts/
 ```
 
-This would give the project cleaner ownership, better test boundaries, and a more professional packaging story for external contributors or buyers doing due diligence.
+This structure already improves ownership and discoverability. The next worthwhile step would be extracting shared domain packages once the web and API boundaries stabilize.

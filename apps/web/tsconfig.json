@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -19,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@verolis/institutional-domain": ["../../packages/institutional-domain/src/index.ts"]
     }
   },
   "include": [
@@ -27,12 +29,11 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "next.config.ts",
-    "eslint.config.mjs",
     "vitest.config.ts",
     "postcss.config.mjs",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "*.mts"
   ],
-  "exclude": ["node_modules", "apps/**", "relayer/**"]
+  "exclude": ["node_modules"]
 }

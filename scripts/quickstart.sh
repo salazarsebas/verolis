@@ -48,9 +48,9 @@ cd "$PROJECT_ROOT"
 
 if [ ! -d "node_modules" ]; then
     npm install
-    echo "✅ Frontend dependencies installed"
+    echo "✅ Root and web dependencies installed"
 else
-    echo "✅ Frontend dependencies already installed"
+    echo "✅ Root and web dependencies already installed"
 fi
 
 if [ ! -d "apps/api/node_modules" ]; then

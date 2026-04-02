@@ -2,12 +2,12 @@
   "name": "stellar-x402-api",
   "version": "1.0.0",
   "description": "x402 Payment API for Stellar institutional payments",
-  "main": "dist/index.js",
+  "main": "dist/apps/api/src/index.js",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/apps/api/src/index.js",
     "lint": "eslint src/**/*.ts",
     "test": "vitest --config vitest.config.ts",
     "test:run": "vitest run --config vitest.config.ts"

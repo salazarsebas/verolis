@@ -1,9 +1,9 @@
 "use client";
 
+import { institutionalPartners, monetizedCapabilities } from "@verolis/institutional-domain";
 import { DashboardStats, RecentTransactions, EndpointMetrics } from "@/components/dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { institutionalPartners, monetizedCapabilities } from "@/lib/institutional/partners";
 import { getInstitutionalEscrowStatuses } from "@/lib/trustless-work/status";
 import Link from "next/link";
 import { Download, RefreshCw, Settings } from "lucide-react";

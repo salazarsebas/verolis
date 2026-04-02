@@ -1,14 +1,41 @@
+export type InstitutionalCategory =
+  | "wallet"
+  | "card-network"
+  | "remittance"
+  | "asset-manager"
+  | "bank"
+  | "fintech";
+
+export type InstitutionalAsset = "USDC" | "PYUSD" | "EURC" | "XLM" | "Tokenized Treasuries";
+
 export interface InstitutionalPartner {
   slug: string;
   name: string;
-  category: "wallet" | "card-network" | "remittance" | "asset-manager" | "bank" | "fintech";
+  category: InstitutionalCategory;
   stellarRelationship: string;
   opportunity: string;
   readinessScore: number;
-  primaryAsset: "USDC" | "PYUSD" | "EURC" | "XLM" | "Tokenized Treasuries";
+  primaryAsset: InstitutionalAsset;
   rails: string[];
   x402Services: string[];
   notes: string[];
+}
+
+export interface MonetizedCapability {
+  name: string;
+  description: string;
+  endpoint: string;
+  price: string;
+}
+
+export interface PaymentRequirement {
+  accepts: Array<{
+    scheme: "exact";
+    price: string;
+    network: "stellar:testnet";
+  }>;
+  description: string;
+  mimeType: "application/json";
 }
 
 export const institutionalPartners: InstitutionalPartner[] = [
@@ -98,7 +125,7 @@ export const institutionalPartners: InstitutionalPartner[] = [
   },
 ];
 
-export const monetizedCapabilities = [
+export const monetizedCapabilities: MonetizedCapability[] = [
   {
     name: "Partner discovery",
     description: "Identify which Stellar partner is best aligned to a given institutional use case.",
@@ -130,3 +157,33 @@ export const monetizedCapabilities = [
     price: "$0.04",
   },
 ];
+
+export const paymentRequirements: Record<string, PaymentRequirement> = {
+  "GET /api/partners": {
+    accepts: [{ scheme: "exact", price: "$0.02", network: "stellar:testnet" }],
+    description: "Institutional partner discovery for Stellar x402 adoption",
+    mimeType: "application/json",
+  },
+  "GET /api/partners/:slug/readiness": {
+    accepts: [{ scheme: "exact", price: "$0.03", network: "stellar:testnet" }],
+    description: "Institutional readiness scoring and adoption gaps",
+    mimeType: "application/json",
+  },
+  "GET /api/rails": {
+    accepts: [{ scheme: "exact", price: "$0.015", network: "stellar:testnet" }],
+    description: "Payment rail intelligence for Stellar partner institutions",
+    mimeType: "application/json",
+  },
+  "POST /api/compliance/screening-quote": {
+    accepts: [{ scheme: "exact", price: "$0.05", network: "stellar:testnet" }],
+    description: "Compliance quote for policy-heavy institutional flows",
+    mimeType: "application/json",
+  },
+  "GET /api/assets/tokenized-access": {
+    accepts: [{ scheme: "exact", price: "$0.04", network: "stellar:testnet" }],
+    description: "Tokenized treasury and stablecoin access map",
+    mimeType: "application/json",
+  },
+};
+
+export const institutionalCatalog = institutionalPartners.map(({ notes: _notes, ...partner }) => partner);
