@@ -103,15 +103,14 @@ scripts/                Local bootstrap helpers
 
 ### Prerequisites
 
-- Node.js 18+
+- Bun 1.3+
 - Docker with Docker Compose
 - A Stellar-compatible wallet for browser demos
 
 ### 1. Install dependencies
 
 ```bash
-npm install
-cd apps/api && npm install
+bun install
 ```
 
 ### 2. Configure environment
@@ -140,10 +139,10 @@ docker compose up -d
 
 ```bash
 # web
-npm run dev
+bun run dev
 
 # api
-npm run dev:api
+bun run dev:api
 ```
 
 ### One-command bootstrap

@@ -158,8 +158,8 @@ export function getSupportedEndpoints() {
   });
 }
 
-export function createApp() {
-  const app = express();
+export function createApp(): express.Express {
+  const app: express.Express = express();
 
   app.use(
     paymentMiddleware(
@@ -261,7 +261,7 @@ function isPaymentRequiredError(
   return typeof error === "object" && error !== null && "status" in error && (error as { status?: unknown }).status === 402;
 }
 
-const app = createApp();
+const app: express.Express = createApp();
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {

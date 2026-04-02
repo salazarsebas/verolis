@@ -66,8 +66,7 @@ Production should add:
 ### 1. Install dependencies
 
 ```bash
-npm install
-cd apps/api && npm install
+bun install
 ```
 
 ### 2. Configure environment
@@ -87,11 +86,10 @@ docker compose up -d
 
 ```bash
 # terminal 1
-npm run dev
+bun run dev
 
 # terminal 2
-cd apps/api
-npm run dev
+bun run dev:api
 ```
 
 ## Container Topology

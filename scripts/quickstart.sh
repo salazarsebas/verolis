@@ -20,8 +20,8 @@ echo ""
 # Check prerequisites
 echo "📋 Checking prerequisites..."
 
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js 18+ first."
+if ! command -v bun &> /dev/null; then
+    echo "❌ Bun is not installed. Please install Bun 1.3+ first."
     exit 1
 fi
 
@@ -46,18 +46,12 @@ echo ""
 echo "📦 Installing dependencies..."
 cd "$PROJECT_ROOT"
 
-if [ ! -d "node_modules" ]; then
-    npm install
-    echo "✅ Root and web dependencies installed"
+if [ ! -f "bun.lock" ]; then
+    bun install
+    echo "✅ Workspace dependencies installed"
 else
-    echo "✅ Root and web dependencies already installed"
-fi
-
-if [ ! -d "apps/api/node_modules" ]; then
-    (cd "$PROJECT_ROOT/apps/api" && npm install)
-    echo "✅ API dependencies installed"
-else
-    echo "✅ API dependencies already installed"
+    bun install --frozen-lockfile
+    echo "✅ Workspace dependencies already installed"
 fi
 
 # Copy environment file if not exists
@@ -111,4 +105,4 @@ echo "║  $ cd infra/docker && $COMPOSE_CMD down                   ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 
-npm run dev
+bun run dev
