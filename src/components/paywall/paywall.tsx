@@ -13,9 +13,19 @@ interface PaywallProps {
   description: string;
   onSuccess?: (data: any) => void;
   children?: React.ReactNode;
+  method?: "GET" | "POST";
+  requestBody?: Record<string, unknown>;
 }
 
-export function Paywall({ requirements, resourceUrl, description, onSuccess, children }: PaywallProps) {
+export function Paywall({
+  requirements,
+  resourceUrl,
+  description,
+  onSuccess,
+  children,
+  method = "GET",
+  requestBody,
+}: PaywallProps) {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
@@ -43,9 +53,16 @@ export function Paywall({ requirements, resourceUrl, description, onSuccess, chi
   }, []);
 
   const handlePayment = useCallback(async () => {
-    if (!isConnected) {
-      await handleConnect();
-      if (!isConnected) return;
+    let activeWallet = walletAddress;
+    if (!activeWallet) {
+      try {
+        activeWallet = await connectWallet();
+        setWalletAddress(activeWallet);
+        setIsConnected(true);
+      } catch (error) {
+        setErrorMessage("Failed to connect wallet");
+        return;
+      }
     }
 
     setIsPaying(true);
@@ -54,10 +71,11 @@ export function Paywall({ requirements, resourceUrl, description, onSuccess, chi
 
     try {
       const response = await makeX402Request(resourceUrl, requirements, {
-        method: "GET",
+        method,
         headers: {
           "Content-Type": "application/json",
         },
+        body: method === "POST" ? JSON.stringify(requestBody || {}) : undefined,
       });
 
       if (response.ok) {
@@ -75,7 +93,7 @@ export function Paywall({ requirements, resourceUrl, description, onSuccess, chi
     } finally {
       setIsPaying(false);
     }
-  }, [isConnected, resourceUrl, requirements, onSuccess, handleConnect]);
+  }, [method, onSuccess, requestBody, resourceUrl, requirements, walletAddress]);
 
   const formatAddress = (address: string | null) => {
     if (!address) return "";
@@ -177,7 +195,7 @@ export function Paywall({ requirements, resourceUrl, description, onSuccess, chi
       <CardFooter>
         <Button 
           onClick={handlePayment} 
-          disabled={isPaying || !isConnected}
+          disabled={isPaying}
           className="w-full"
         >
           {isPaying ? (

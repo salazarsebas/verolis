@@ -4,22 +4,21 @@ import dotenv from "dotenv";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
+import { institutionalCatalog, paymentRequirements } from "./institutionalCatalog";
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.API_PORT || 4021;
-
+const PORT = Number(process.env.API_PORT || process.env.PORT || 4021);
 const stellarAddress = process.env.STELLAR_ADDRESS;
 const facilitatorUrl = process.env.FACILITATOR_URL;
 const relayerApiKey = process.env.RELAYER_API_KEY || "test-api-key";
+const network = process.env.NETWORK || "stellar:testnet";
 
 if (!facilitatorUrl) {
-  console.error("❌ FACILITATOR_URL is required");
+  console.error("FACILITATOR_URL is required");
   process.exit(1);
 }
 
-// Create facilitator client for payment verification and settlement
 const facilitatorClient = new HTTPFacilitatorClient({
   url: facilitatorUrl,
   createAuthHeaders: async () => ({
@@ -29,252 +28,233 @@ const facilitatorClient = new HTTPFacilitatorClient({
   }),
 });
 
-// Define payment requirements for different endpoints
-const paymentRequirements = {
-  "GET /api/weather": {
-    accepts: [
-      {
-        scheme: "exact" as const,
-        price: "$0.001",
-        network: "stellar:testnet" as const,
-        payTo: stellarAddress || "GEXAMPLE Stellar Address",
-      },
-    ],
-    description: "Real-time weather data API",
-    mimeType: "application/json",
-  },
-  "GET /api/market-data": {
-    accepts: [
-      {
-        scheme: "exact" as const,
-        price: "$0.01",
-        network: "stellar:testnet" as const,
-        payTo: stellarAddress || "GEXAMPLE Stellar Address",
-      },
-    ],
-    description: "Financial market data feed",
-    mimeType: "application/json",
-  },
-  "GET /api/kyc-verify": {
-    accepts: [
-      {
-        scheme: "exact" as const,
-        price: "$0.50",
-        network: "stellar:testnet" as const,
-        payTo: stellarAddress || "GEXAMPLE Stellar Address",
-      },
-    ],
-    description: "KYC verification service",
-    mimeType: "application/json",
-  },
-  "POST /api/payment-process": {
-    accepts: [
-      {
-        scheme: "exact" as const,
-        price: "$0.10",
-        network: "stellar:testnet" as const,
-        payTo: stellarAddress || "GEXAMPLE Stellar Address",
-      },
-    ],
-    description: "Payment processing service",
-    mimeType: "application/json",
-  },
-};
-
-// Apply x402 payment middleware
-app.use(
-  paymentMiddleware(
-    paymentRequirements,
-    new x402ResourceServer(facilitatorClient).register(
-      "stellar:testnet",
-      new ExactStellarScheme()
-    )
-  )
+const resolvedPaymentRequirements = Object.fromEntries(
+  Object.entries(paymentRequirements).map(([route, config]) => [
+    route,
+    {
+      ...config,
+      accepts: config.accepts.map((accept) => ({
+        ...accept,
+        network,
+        payTo: stellarAddress || "UNCONFIGURED_STELLAR_ADDRESS",
+      })),
+    },
+  ])
 );
 
-app.use(cors());
-app.use(express.json());
-
-// API Routes (protected by x402 middleware)
-
-/**
- * Weather Data Endpoint
- * Example: Real-time weather data for institutional trading algorithms
- */
-app.get("/api/weather", (req, res) => {
-  res.json({
-    report: {
-      location: "New York, NY",
-      weather: "sunny",
-      temperature: 70,
-      humidity: 45,
-      windSpeed: 12,
-      timestamp: new Date().toISOString(),
-    },
-    metadata: {
-      source: "National Weather Service",
-      reliability: "high",
-    },
+export function listPartners(filters?: { category?: string; asset?: string }) {
+  return institutionalCatalog.filter((partner) => {
+    if (filters?.category && partner.category !== filters.category) {
+      return false;
+    }
+    if (filters?.asset && partner.primaryAsset !== filters.asset) {
+      return false;
+    }
+    return true;
   });
-});
+}
 
-/**
- * Market Data Endpoint
- * Example: Financial market data for institutional clients
- */
-app.get("/api/market-data", (req, res) => {
-  res.json({
-    symbols: [
-      {
-        symbol: "AAPL",
-        price: 175.50,
-        change: 2.35,
-        changePercent: 1.36,
-        volume: 52000000,
-      },
-      {
-        symbol: "GOOGL",
-        price: 142.80,
-        change: -0.95,
-        changePercent: -0.66,
-        volume: 28000000,
-      },
-      {
-        symbol: "XLM",
-        price: 0.125,
-        change: 0.008,
-        changePercent: 6.84,
-        volume: 180000000,
-      },
-    ],
-    timestamp: new Date().toISOString(),
-    source: "Stellar Market Data",
-  });
-});
-
-/**
- * KYC Verification Endpoint
- * Example: Identity verification for compliance (U.S. Bank, PayPal integrations)
- */
-app.get("/api/kyc-verify", (req, res) => {
-  res.json({
-    status: "verified",
-    verificationId: `kyc-${Date.now()}`,
-    level: "enhanced",
-    checks: {
-      identity: "passed",
-      address: "passed",
-      sanctions: "cleared",
-      pep: "cleared",
-    },
-    timestamp: new Date().toISOString(),
-    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-  });
-});
-
-/**
- * Payment Processing Endpoint
- * Example: Process cross-border payments (MoneyGram, AirTM use case)
- */
-app.post("/api/payment-process", (req, res) => {
-  const { amount, currency, destination } = req.body;
-  
-  res.json({
-    transactionId: `txn-${Date.now()}`,
-    status: "completed",
-    details: {
-      amount: amount || 100,
-      currency: currency || "USDC",
-      destination: destination || "GEXAMPLE",
-      fee: 0.001,
-      network: "stellar",
-      settlementTime: "< 5 seconds",
-    },
-    timestamp: new Date().toISOString(),
-  });
-});
-
-/**
- * Health Check Endpoint (no payment required)
- */
-app.get("/health", (req, res) => {
-  res.json({
-    status: "healthy",
-    service: "stellar-x402-api",
-    network: process.env.NETWORK || "stellar:testnet",
-    facilitator: facilitatorUrl,
-    timestamp: new Date().toISOString(),
-  });
-});
-
-/**
- * Supported Payment Methods Endpoint (no payment required)
- * Returns x402 payment requirements for all endpoints
- */
-app.get("/api/supported", (req, res) => {
-  res.json({
-    network: "stellar:testnet",
-    scheme: "exact",
-    assets: [
-      {
-        code: "USDC",
-        issuer: "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
-        name: "USD Coin",
-      },
-      {
-        code: "PYUSD",
-        issuer: "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
-        name: "PayPal USD",
-      },
-    ],
-    endpoints: Object.keys(paymentRequirements).map((key) => {
-      const [method, path] = key.split(" ");
-      const req = paymentRequirements[key as keyof typeof paymentRequirements];
-      return {
-        method,
-        path,
-        price: req.accepts[0].price,
-        description: req.description,
-      };
-    }),
-  });
-});
-
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error("Error:", err);
-  
-  // Handle x402 payment errors
-  if (err.status === 402) {
-    return res.status(402).json({
-      error: "Payment Required",
-      message: "A valid x402 payment is required to access this resource",
-      paymentRequired: err.paymentRequired,
-    });
+export function getPartnerReadiness(slug: string) {
+  const partner = institutionalCatalog.find((entry) => entry.slug === slug);
+  if (!partner) {
+    return null;
   }
-  
-  res.status(500).json({
-    error: "Internal Server Error",
-    message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
-  });
-});
 
-app.listen(PORT, () => {
-  console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║           Stellar x402 Institutional Payment API          ║
-╠═══════════════════════════════════════════════════════════╣
-║  Server running at http://localhost:${PORT}                    ║
-║  Network: ${process.env.NETWORK || "stellar:testnet"}                            
-║  Facilitator: ${facilitatorUrl}             
-║                                                           ║
-║  Endpoints:                                               ║
-║  - GET  /health          (free)                           ║
-║  - GET  /api/supported   (free)                           ║
-║  - GET  /api/weather     ($0.001)                         ║
-║  - GET  /api/market-data ($0.01)                          ║
-║  - GET  /api/kyc-verify  ($0.50)                          ║
-║  - POST /api/payment-process ($0.10)                      ║
-╚═══════════════════════════════════════════════════════════╝
-  `);
-});
+  const adoptionStage =
+    partner.readinessScore >= 85 ? "pilot-now" :
+    partner.readinessScore >= 78 ? "design-partnership" :
+    "compliance-first";
+
+  return {
+    partner: partner.name,
+    slug: partner.slug,
+    readinessScore: partner.readinessScore,
+    adoptionStage,
+    asset: partner.primaryAsset,
+    recommendedServices: partner.x402Services,
+    gaps: [
+      "Wallets must support Soroban auth-entry signing for production browser flows.",
+      "Settlement, compliance and analytics should be exposed as independently priced APIs.",
+      "Institution-specific audit logging is required before mainnet onboarding.",
+    ],
+    nextActions: [
+      "Start with a high-value read endpoint priced with x402.",
+      "Add policy and settlement webhooks behind the same institutional account.",
+      "Graduate to write endpoints after facilitator settlement is validated on testnet.",
+    ],
+  };
+}
+
+export function getRailSummary() {
+  return institutionalCatalog.map((partner) => ({
+    partner: partner.name,
+    rails: partner.rails,
+    asset: partner.primaryAsset,
+    monetizedServices: partner.x402Services.length,
+  }));
+}
+
+export function getComplianceQuote(input?: {
+  institution?: string;
+  jurisdiction?: string;
+  transferAmount?: number;
+}) {
+  const institution = input?.institution || "unspecified";
+  const jurisdiction = input?.jurisdiction || "multi-region";
+  const transferAmount = Number(input?.transferAmount || 0);
+  const workloadTier =
+    transferAmount >= 100000 ? "enhanced-review" :
+    transferAmount >= 10000 ? "standard-review" :
+    "light-review";
+
+  return {
+    institution,
+    jurisdiction,
+    workloadTier,
+    quotedChecks: ["kyc", "sanctions", "pep", "source-of-funds"],
+    estimatedReviewMinutes: workloadTier === "enhanced-review" ? 45 : workloadTier === "standard-review" ? 20 : 8,
+    policyHooks: ["freeze", "manual-approval", "audit-log"],
+    network,
+  };
+}
+
+export function getTokenizedAccessMap() {
+  return [
+    {
+      asset: "USDC",
+      bestFit: ["MoneyGram", "Visa", "U.S. Bank", "AirTM"],
+      useCases: ["cross-border payouts", "treasury settlement", "request-priced APIs"],
+    },
+    {
+      asset: "PYUSD",
+      bestFit: ["PayPal"],
+      useCases: ["merchant settlement", "agent checkout", "wallet payout APIs"],
+    },
+    {
+      asset: "EURC",
+      bestFit: ["Wirex"],
+      useCases: ["FX routing", "euro treasury operations", "cross-border card liquidity"],
+    },
+    {
+      asset: "Tokenized Treasuries",
+      bestFit: ["Franklin Templeton"],
+      useCases: ["NAV access", "eligibility workflows", "portfolio automation"],
+    },
+  ];
+}
+
+export function getSupportedEndpoints() {
+  return Object.entries(resolvedPaymentRequirements).map(([key, value]) => {
+    const [method, ...pathParts] = key.split(" ");
+    return {
+      method,
+      path: pathParts.join(" "),
+      price: value.accepts[0].price,
+      assetAssumption: value.accepts[0].payTo,
+      description: value.description,
+    };
+  });
+}
+
+export function createApp() {
+  const app = express();
+
+  app.use(
+    paymentMiddleware(
+      resolvedPaymentRequirements,
+      new x402ResourceServer(facilitatorClient).register(network, new ExactStellarScheme())
+    )
+  );
+
+  app.use(cors());
+  app.use(express.json());
+
+  app.get("/api/partners", (req, res) => {
+    const category = typeof req.query.category === "string" ? req.query.category : undefined;
+    const asset = typeof req.query.asset === "string" ? req.query.asset : undefined;
+
+    const partners = listPartners({ category, asset });
+
+    res.json({
+      objective: "Find institutional Stellar partners that can monetize infrastructure through x402.",
+      total: partners.length,
+      filters: { category: category || null, asset: asset || null },
+      partners,
+    });
+  });
+
+  app.get("/api/partners/:slug/readiness", (req, res) => {
+    const readiness = getPartnerReadiness(req.params.slug);
+    if (!readiness) {
+      return res.status(404).json({ error: "Partner not found" });
+    }
+    return res.json(readiness);
+  });
+
+  app.get("/api/rails", (_req, res) => {
+    res.json({
+      network,
+      settlementModel: "Per-request payment using x402 on Stellar.",
+      rails: getRailSummary(),
+    });
+  });
+
+  app.post("/api/compliance/screening-quote", (req, res) => {
+    res.json(getComplianceQuote(req.body));
+  });
+
+  app.get("/api/assets/tokenized-access", (_req, res) => {
+    res.json({
+      thesis: "Institutional adoption improves when tokenized treasuries, stablecoins and payout rails share the same payment primitive.",
+      assets: getTokenizedAccessMap(),
+    });
+  });
+
+  app.get("/health", (_req, res) => {
+    res.json({
+      status: "healthy",
+      service: "stellar-x402-api",
+      network,
+      facilitator: facilitatorUrl,
+      institutions: institutionalCatalog.length,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  app.get("/api/supported", (_req, res) => {
+    res.json({
+      network,
+      scheme: "exact",
+      payToConfigured: Boolean(stellarAddress),
+      endpoints: getSupportedEndpoints(),
+    });
+  });
+
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    if (err.status === 402) {
+      return res.status(402).json({
+        error: "Payment Required",
+        message: "A valid x402 payment is required to access this institutional resource.",
+        paymentRequired: err.paymentRequired,
+      });
+    }
+
+    console.error("API error:", err);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+    });
+  });
+
+  return app;
+}
+
+const app = createApp();
+
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`stellar-x402-api listening on port ${PORT}`);
+  });
+}
+
+export default app;

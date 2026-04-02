@@ -106,34 +106,34 @@ export function RecentTransactions({ transactions = [] }: RecentTransactionsProp
     {
       id: "txn-001",
       timestamp: new Date().toISOString(),
-      endpoint: "/api/weather",
-      amount: "$0.001",
+      endpoint: "/api/partners",
+      amount: "$0.02",
       status: "completed",
       network: "stellar:testnet",
-      asset: "USDC",
-      from: "GABC...DEF1",
+      asset: "PYUSD",
+      from: "PayPal",
       transactionHash: "abc123...",
     },
     {
       id: "txn-002",
       timestamp: new Date(Date.now() - 60000).toISOString(),
-      endpoint: "/api/market-data",
-      amount: "$0.01",
+      endpoint: "/api/partners/moneygram/readiness",
+      amount: "$0.03",
       status: "completed",
       network: "stellar:testnet",
       asset: "USDC",
-      from: "GXYZ...789",
+      from: "MoneyGram",
       transactionHash: "def456...",
     },
     {
       id: "txn-003",
       timestamp: new Date(Date.now() - 120000).toISOString(),
-      endpoint: "/api/kyc-verify",
-      amount: "$0.50",
+      endpoint: "/api/assets/tokenized-access",
+      amount: "$0.04",
       status: "pending",
       network: "stellar:testnet",
-      asset: "PYUSD",
-      from: "G123...ABC",
+      asset: "Tokenized Treasuries",
+      from: "Franklin Templeton",
     },
   ];
 
@@ -202,10 +202,10 @@ interface EndpointMetricsProps {
 
 export function EndpointMetrics({ endpoints = [] }: EndpointMetricsProps) {
   const defaultEndpoints = [
-    { path: "/api/weather", requests: 1234, revenue: "$1.23", avgResponseTime: "45ms" },
-    { path: "/api/market-data", requests: 567, revenue: "$5.67", avgResponseTime: "120ms" },
-    { path: "/api/kyc-verify", requests: 89, revenue: "$44.50", avgResponseTime: "250ms" },
-    { path: "/api/payment-process", requests: 234, revenue: "$23.40", avgResponseTime: "180ms" },
+    { path: "/api/partners", requests: 1234, revenue: "$24.68", avgResponseTime: "45ms" },
+    { path: "/api/partners/moneygram/readiness", requests: 567, revenue: "$17.01", avgResponseTime: "120ms" },
+    { path: "/api/rails", requests: 489, revenue: "$7.33", avgResponseTime: "95ms" },
+    { path: "/api/assets/tokenized-access", requests: 234, revenue: "$9.36", avgResponseTime: "180ms" },
   ];
 
   const eps = endpoints.length > 0 ? endpoints : defaultEndpoints;

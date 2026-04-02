@@ -14,9 +14,10 @@ interface ResourceAccessProps {
   requirements: PaymentRequirements;
   description: string;
   apiUrl: string;
+  requestBody?: Record<string, unknown>;
 }
 
-export function ResourceAccess({ endpoint, method, requirements, description, apiUrl }: ResourceAccessProps) {
+export function ResourceAccess({ endpoint, method, requirements, description, apiUrl, requestBody }: ResourceAccessProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,6 +34,7 @@ export function ResourceAccess({ endpoint, method, requirements, description, ap
         headers: {
           "Content-Type": "application/json",
         },
+        body: method === "POST" ? JSON.stringify(requestBody || {}) : undefined,
       });
       const data = await response.json();
       console.log("Test request result:", data);
@@ -72,13 +74,15 @@ export function ResourceAccess({ endpoint, method, requirements, description, ap
               resourceUrl={`${apiUrl}${endpoint}`}
               description={`Pay ${requirements.price} to access ${endpoint}`}
               onSuccess={handlePaymentSuccess}
+              method={method}
+              requestBody={requestBody}
             />
           </div>
         ) : (
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
               <p className="text-sm text-green-800 dark:text-green-400">
-                ✓ This resource is now unlocked. You can make requests without additional payments.
+                ✓ The last paid request succeeded. Use the test button to inspect the endpoint response shape.
               </p>
             </div>
             

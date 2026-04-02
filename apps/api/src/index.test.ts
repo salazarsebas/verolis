@@ -1,60 +1,76 @@
-/**
- * API Server Tests
- */
+import { describe, expect, it, vi } from "vitest";
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import request from "supertest";
+process.env.NODE_ENV = "test";
+process.env.FACILITATOR_URL = "http://localhost:8080/api/v1/plugins/x402/call";
+process.env.NETWORK = "stellar:testnet";
 
-const API_URL = process.env.TEST_API_URL || "http://localhost:4021";
+vi.mock("@x402/core/server", () => ({
+  HTTPFacilitatorClient: class MockFacilitatorClient {},
+}));
 
-describe("API Server", () => {
-  describe("Health Check", () => {
-    it("should return healthy status", async () => {
-      const response = await request(API_URL)
-        .get("/health")
-        .expect(200);
+vi.mock("@x402/stellar/exact/server", () => ({
+  ExactStellarScheme: class MockExactStellarScheme {},
+}));
 
-      expect(response.body.status).toBe("healthy");
-      expect(response.body.service).toBe("stellar-x402-api");
-    });
+vi.mock("@x402/express", () => ({
+  paymentMiddleware: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+  x402ResourceServer: class MockResourceServer {
+    register() {
+      return {};
+    }
+  },
+}));
+
+const {
+  listPartners,
+  getPartnerReadiness,
+  getRailSummary,
+  getComplianceQuote,
+  getTokenizedAccessMap,
+  getSupportedEndpoints,
+} = await import("./index");
+
+describe("Institutional API services", () => {
+  it("lists partners from the institutional catalog", () => {
+    const partners = listPartners();
+
+    expect(partners.length).toBeGreaterThan(0);
+    expect(partners.some((partner: { slug: string }) => partner.slug === "moneygram")).toBe(true);
   });
 
-  describe("Supported Payment Methods", () => {
-    it("should return supported payment methods", async () => {
-      const response = await request(API_URL)
-        .get("/api/supported")
-        .expect(200);
+  it("filters partners by asset", () => {
+    const partners = listPartners({ asset: "PYUSD" });
 
-      expect(response.body.network).toBe("stellar:testnet");
-      expect(response.body.scheme).toBe("exact");
-      expect(response.body.endpoints).toBeDefined();
-      expect(Array.isArray(response.body.endpoints)).toBe(true);
-    });
+    expect(partners).toHaveLength(1);
+    expect(partners[0].slug).toBe("paypal");
   });
 
-  describe("Protected Endpoints", () => {
-    it("should return 402 for weather endpoint without payment", async () => {
-      const response = await request(API_URL)
-        .get("/api/weather")
-        .expect(402);
+  it("returns readiness for known partners", () => {
+    const readiness = getPartnerReadiness("moneygram");
 
-      expect(response.body.error).toBeDefined();
-    });
+    expect(readiness?.partner).toBe("MoneyGram");
+    expect(readiness?.readinessScore).toBeGreaterThan(80);
+    expect(readiness?.adoptionStage).toBe("pilot-now");
+  });
 
-    it("should return 402 for market-data endpoint without payment", async () => {
-      const response = await request(API_URL)
-        .get("/api/market-data")
-        .expect(402);
+  it("returns null for unknown partners", () => {
+    expect(getPartnerReadiness("unknown")).toBeNull();
+  });
 
-      expect(response.body.error).toBeDefined();
-    });
+  it("builds a compliance quote based on transfer amount", () => {
+    const quote = getComplianceQuote({ institution: "U.S. Bank", transferAmount: 125000 });
 
-    it("should return 402 for kyc-verify endpoint without payment", async () => {
-      const response = await request(API_URL)
-        .get("/api/kyc-verify")
-        .expect(402);
+    expect(quote.workloadTier).toBe("enhanced-review");
+    expect(quote.quotedChecks).toContain("sanctions");
+  });
 
-      expect(response.body.error).toBeDefined();
-    });
+  it("returns monetizable rail and endpoint metadata", () => {
+    const rails = getRailSummary();
+    const assets = getTokenizedAccessMap();
+    const endpoints = getSupportedEndpoints();
+
+    expect(rails.some((entry: { partner: string }) => entry.partner === "MoneyGram")).toBe(true);
+    expect(assets.some((entry: { asset: string }) => entry.asset === "PYUSD")).toBe(true);
+    expect(endpoints.some((entry: { path: string }) => entry.path === "/api/partners")).toBe(true);
   });
 });

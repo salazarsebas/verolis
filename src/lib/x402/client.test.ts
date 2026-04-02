@@ -44,8 +44,8 @@ describe("x402 Client", () => {
 
       const payload = createPaymentPayload(
         requirements,
-        "/api/weather",
-        "Weather data"
+        "/api/partners",
+        "Institutional partner discovery"
       );
 
       expect(payload.x402Version).toBe(2);
@@ -53,7 +53,7 @@ describe("x402 Client", () => {
       expect(payload.network).toBe("stellar:testnet");
       expect(payload.payload.price).toBe("$0.001");
       expect(payload.payload.payTo).toBe("GTEST123");
-      expect(payload.payload.resource).toBe("/api/weather");
+      expect(payload.payload.resource).toBe("/api/partners");
     });
   });
 
@@ -66,8 +66,8 @@ describe("x402 Client", () => {
         payload: {
           price: "$0.001",
           payTo: "GTEST123",
-          resource: "/api/weather",
-          description: "Weather data",
+          resource: "/api/partners",
+          description: "Institutional partner discovery",
         },
         signature: "0xabc123",
       };

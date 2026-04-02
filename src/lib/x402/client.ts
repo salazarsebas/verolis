@@ -1,9 +1,8 @@
 /**
  * x402 Client Utilities for Stellar
- * Handles payment creation, signing, and verification
+ * Browser demo helper for wallet connection and manual x402 request retries.
  */
 
-import { SorobanRpc, Transaction, TransactionBuilder, Networks, Address } from "@stellar/stellar-sdk";
 import { connect, isConnected, disconnect } from "@stellar/freighter-api";
 
 export interface PaymentRequirements {
@@ -37,6 +36,16 @@ export interface X402Response {
     scheme: string;
     network: string;
     transactionHash?: string;
+  };
+}
+
+export function getBrowserX402SupportState() {
+  return {
+    mode: "demo",
+    limitation:
+      "Production Stellar x402 in the browser still needs wallet support for Soroban auth-entry signing.",
+    recommendation:
+      "Use @x402/fetch plus a wallet or signer that can approve auth entries before enabling mainnet flows.",
   };
 }
 
@@ -108,10 +117,8 @@ export async function signPaymentAuthorization(
       await connect();
     }
 
-    // For x402 on Stellar, we need to sign a Soroban authorization entry
-    // This is a simplified version - in production, you'd create the actual
-    // Soroban invocation with proper authorization entries
-    
+    // Demo-only placeholder. Production x402 must sign the auth entry produced
+    // by the exact Stellar payment flow using a compatible wallet.
     const authEntry = {
       address: walletAddress,
       nonce: Date.now().toString(),
@@ -119,8 +126,6 @@ export async function signPaymentAuthorization(
       payload: payment.payload,
     };
 
-    // In production, this would sign the actual Soroban authorization entry
-    // For now, we create a mock signature for demonstration
     const encoder = new TextEncoder();
     const data = encoder.encode(JSON.stringify(authEntry));
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -160,13 +165,17 @@ export async function makeX402Request(
   options: RequestInit = {}
 ): Promise<Response> {
   try {
+    if (!requirements.payTo || requirements.payTo === "UNCONFIGURED_STELLAR_ADDRESS") {
+      throw new Error("Missing payTo configuration for Stellar x402 payments");
+    }
+
     // First request without payment
     let response = await fetch(url, options);
 
     // If 402 Payment Required, create and attach payment
     if (response.status === 402) {
       const walletAddress = await connectWallet();
-      const payment = createPaymentPayload(requirements, url, requirements.scheme);
+      const payment = createPaymentPayload(requirements, url, "Institutional x402 request");
       const signedPayment = await signPaymentAuthorization(payment, walletAddress);
       const headers = createPaymentHeaders(signedPayment);
 

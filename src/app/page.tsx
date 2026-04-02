@@ -1,229 +1,155 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
+import { ArrowRight, BadgeDollarSign, Building2, ShieldCheck, Waves, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Zap, Globe, Coins, Building2, Bot } from "lucide-react";
+import { institutionalPartners, monetizedCapabilities } from "@/lib/institutional/partners";
+
+const featuredPartners = institutionalPartners.slice(0, 7);
+const topPartners = [...institutionalPartners]
+  .sort((left, right) => right.readinessScore - left.readinessScore)
+  .slice(0, 3);
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-600" />
-            <span className="text-xl font-bold">Stellar x402</span>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#ecfccb,_#ffffff_45%,_#f8fafc_100%)] text-slate-950">
+      <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lime-700">Verolis</p>
+            <h1 className="text-xl font-semibold">Institutional x402 on Stellar</h1>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/demo" className="text-sm font-medium hover:text-blue-600">
-              Demo
-            </Link>
-            <Link href="/dashboard" className="text-sm font-medium hover:text-blue-600">
-              Dashboard
-            </Link>
-            <Link href="/smart-accounts" className="text-sm font-medium hover:text-blue-600">
-              Smart Accounts
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button>Launch App</Button>
-            </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/demo"><Button variant="outline">API Demo</Button></Link>
+            <Link href="/trustless-work"><Button variant="outline">Escrow Layer</Button></Link>
+            <Link href="/dashboard"><Button>Adoption Console</Button></Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm font-medium mb-6">
-          <Zap className="h-4 w-4" />
-          Powered by x402 Protocol on Stellar
-        </div>
-        <h1 className="text-5xl md:text-6xl font-bold mb-6">
-          Institutional Payments
-          <br />
-          <span className="text-blue-600">Reimagined for AI</span>
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-          Enable autonomous AI agents and institutions to make programmatic, per-request payments
-          without API keys, subscriptions, or billing infrastructure. Built on Stellar with &lt;5s settlement.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Link href="/demo">
-            <Button size="lg" className="gap-2">
-              Try Demo
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button size="lg" variant="outline">
-              View Dashboard
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="container mx-auto px-4 py-12 border-t">
-        <p className="text-center text-sm text-gray-500 mb-8">
-          Trusted by leading financial institutions and technology companies
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60">
-          {["PayPal", "Visa", "MoneyGram", "Franklin Templeton", "U.S. Bank", "Mastercard"].map((partner) => (
-            <div key={partner} className="text-xl font-semibold text-gray-400">
-              {partner}
+      <main className="container mx-auto px-4 py-14">
+        <section className="grid gap-10 lg:grid-cols-[1.3fr_0.9fr] lg:items-start">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lime-200 bg-lime-50 px-4 py-2 text-sm font-medium text-lime-900">
+              <ShieldCheck className="h-4 w-4" />
+              x402 as the payment primitive for institutional Stellar partnerships
             </div>
-          ))}
-        </div>
-      </section>
+            <h2 className="max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-slate-950 md:text-6xl">
+              Monetize institutional payment intelligence, not just generic API calls.
+            </h2>
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
+              The project objective is now explicit: identify how PayPal, Visa, Wirex, MoneyGram, Franklin Templeton,
+              U.S. Bank and AirTM can expose high-value Stellar services behind `x402`, then package those flows
+              as request-priced APIs for treasury, remittance, compliance and tokenized assets.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/demo">
+                <Button size="lg" className="gap-2">
+                  Explore paid endpoints
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/smart-accounts">
+                <Button size="lg" variant="outline">Policy controls</Button>
+              </Link>
+              <Link href="/trustless-work">
+                <Button size="lg" variant="outline">Trustless Work</Button>
+              </Link>
+            </div>
+          </div>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          Built for Institutional Scale
-        </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={<Zap className="h-6 w-6 text-blue-600" />}
-            title="Instant Settlement"
-            description="&lt;5 second settlement on Stellar with 99.99% uptime. Perfect for HTTP request cycles and real-time payments."
-          />
-          <FeatureCard
-            icon={<Coins className="h-6 w-6 text-blue-600" />}
-            title="Multi-Stablecoin"
-            description="Support for USDC, PYUSD, EURC, and other native stablecoins. No wrapped tokens, no bridges."
-          />
-          <FeatureCard
-            icon={<Shield className="h-6 w-6 text-blue-600" />}
-            title="OpenZeppelin Security"
-            description="Audited smart account contracts and relayer infrastructure. Enterprise-grade security out of the box."
-          />
-          <FeatureCard
-            icon={<Building2 className="h-6 w-6 text-blue-600" />}
-            title="Institutional Controls"
-            description="Spending limits, multisig approval, compliance hooks, and transaction freezing for regulated entities."
-          />
-          <FeatureCard
-            icon={<Bot className="h-6 w-6 text-blue-600" />}
-            title="AI Agent Ready"
-            description="Autonomous payment discovery and execution. AI agents can pay for APIs without human intervention."
-          />
-          <FeatureCard
-            icon={<Globe className="h-6 w-6 text-blue-600" />}
-            title="Global Reach"
-            description="Cross-border payments with 20-25% cost savings. Available in 170+ countries via MoneyGram integration."
-          />
-        </div>
-      </section>
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Highest readiness</p>
+            <div className="mt-5 space-y-4">
+              {topPartners.map((partner) => (
+                <div key={partner.slug} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">{partner.name}</h3>
+                      <p className="text-sm text-slate-500">{partner.primaryAsset}</p>
+                    </div>
+                    <span className="rounded-full bg-lime-100 px-3 py-1 text-sm font-semibold text-lime-900">
+                      {partner.readinessScore}/100
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{partner.opportunity}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-      {/* Use Cases Section */}
-      <section className="container mx-auto px-4 py-20 bg-gray-50 dark:bg-gray-900 rounded-3xl">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          Use Cases
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          <UseCaseCard
-            title="API Micropayments"
-            description="Charge $0.001 per API call instead of managing subscriptions. Perfect for weather data, market feeds, and AI inference."
-            example="Weather API: $0.001/call → 1M calls = $1,000 revenue"
-          />
-          <UseCaseCard
-            title="Cross-Border Remittance"
-            description="Enable instant international payments with automatic currency conversion. 20-25% cost savings vs traditional providers."
-            example="MoneyGram: Colombia → US, settled in USDC in &lt;5s"
-          />
-          <UseCaseCard
-            title="KYC/Compliance Services"
-            description="Pay-per-verification for identity checks, sanctions screening, and compliance workflows."
-            example="KYC verification: $0.50/check with enhanced due diligence"
-          />
-          <UseCaseCard
-            title="Tokenized Assets"
-            description="Facilitate payments for access to tokenized treasuries, real estate, and other RWAs."
-            example="Franklin Templeton: $580M+ in tokenized treasury access"
-          />
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold mb-4">
-          Ready to Transform Your Payments?
-        </h2>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-          Join leading institutions using x402 on Stellar for programmatic, autonomous payments.
-        </p>
-        <Link href="/dashboard">
-          <Button size="lg" className="gap-2">
-            Get Started
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-5 w-5 text-blue-600" />
-                <span className="font-bold">Stellar x402</span>
+        <section className="mt-16">
+          <p className="text-center text-sm uppercase tracking-[0.24em] text-slate-500">Institution map</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {featuredPartners.map((partner) => (
+              <div key={partner.slug} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-base font-semibold">{partner.name}</span>
+                  <span className="text-sm text-slate-500">{partner.primaryAsset}</span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{partner.stellarRelationship}</p>
               </div>
-              <p className="text-sm text-gray-500">
-                Institutional-grade x402 payment infrastructure on Stellar
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><Link href="/demo" className="hover:text-blue-600">Demo</Link></li>
-                <li><Link href="/dashboard" className="hover:text-blue-600">Dashboard</Link></li>
-                <li><Link href="/smart-accounts" className="hover:text-blue-600">Smart Accounts</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="https://developers.stellar.org/docs/build/apps/x402" className="hover:text-blue-600" target="_blank">Docs</a></li>
-                <li><a href="https://x402.org" className="hover:text-blue-600" target="_blank">x402 Protocol</a></li>
-                <li><a href="https://github.com/OpenZeppelin/relayer-plugin-x402-facilitator" className="hover:text-blue-600" target="_blank">OpenZeppelin</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-500">
-                <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-blue-600">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-blue-600">Compliance</a></li>
-              </ul>
-            </div>
+            ))}
           </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-gray-500">
-            <p>Built with OpenZeppelin Relayer, Soroban Smart Accounts, and the x402 Protocol</p>
+        </section>
+
+        <section className="mt-16 grid gap-6 lg:grid-cols-3">
+          <FocusCard
+            icon={<Building2 className="h-5 w-5" />}
+            title="Partner discovery"
+            description="Use x402 to charge for institutional discovery APIs that show where Stellar alliances can be commercialized first."
+          />
+          <FocusCard
+            icon={<Waves className="h-5 w-5" />}
+            title="Rail intelligence"
+            description="Package remittance corridors, treasury rails and payout routes as individually priced responses."
+          />
+          <FocusCard
+            icon={<WalletCards className="h-5 w-5" />}
+            title="Asset access"
+            description="Expose USDC, PYUSD, EURC and tokenized treasury workflows through the same payment surface."
+          />
+        </section>
+
+        <section className="mt-16 rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-white">
+          <div className="flex items-center gap-2 text-sm font-medium text-lime-300">
+            <BadgeDollarSign className="h-4 w-4" />
+            Monetized capabilities
           </div>
-        </div>
-      </footer>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {monetizedCapabilities.map((capability) => (
+              <div key={capability.endpoint} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="text-lg font-semibold">{capability.name}</h3>
+                  <span className="rounded-full bg-lime-300 px-3 py-1 text-sm font-semibold text-slate-950">
+                    {capability.price}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{capability.description}</p>
+                <p className="mt-3 font-mono text-sm text-lime-200">{capability.endpoint}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FocusCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="p-6 rounded-xl bg-white dark:bg-gray-800 border shadow-sm hover:shadow-md transition-shadow">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-400">{description}</p>
-    </div>
-  );
-}
-
-function UseCaseCard({ title, description, example }: { title: string; description: string; example: string }) {
-  return (
-    <div className="p-6 rounded-xl bg-white dark:bg-gray-800 border">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-4">{description}</p>
-      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
-        <p className="text-sm font-mono text-blue-600">{example}</p>
-      </div>
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-4 inline-flex rounded-full bg-slate-950 p-3 text-lime-300">{icon}</div>
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
     </div>
   );
 }
