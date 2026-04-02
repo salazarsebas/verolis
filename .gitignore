@@ -10,10 +10,22 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.npm/
+**/.npm/
+.pnpm-store/
+**/.pnpm-store/
+.cache/
+**/.cache/
 
 # testing
 /coverage
 **/coverage/
+.nyc_output/
+**/.nyc_output/
+playwright-report/
+**/playwright-report/
+test-results/
+**/test-results/
 
 # next.js
 /.next/
@@ -27,10 +39,23 @@
 **/dist/
 **/.vite/
 **/.turbo/
+tmp/
+**/tmp/
+temp/
+**/temp/
 
 # misc
 .DS_Store
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
 *.pem
+*.pid
+*.seed
+*.sqlite
+*.sqlite3
+*.db
 target/
 **/target/
 
@@ -39,13 +64,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+bun-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
 **/.env*
+.envrc
+**/.envrc
 
 # vercel
 .vercel
+**/.vercel
 
 # typescript
 *.tsbuildinfo
