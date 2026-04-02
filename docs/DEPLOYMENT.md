@@ -1,445 +1,143 @@
-# Stellar x402 Deployment Guide
+# Verolis Deployment Guide
 
-This guide covers deploying the Stellar x402 Institutional Payment DApp to production.
+## Scope
 
-## Prerequisites
+This guide covers the current deployment shape of Verolis:
 
-- Docker & Docker Compose
-- Stellar mainnet account with XLM balance
-- OpenZeppelin Relayer API key (for mainnet)
-- Domain name for HTTPS (required for production)
+- Next.js web app
+- Express API
+- OpenZeppelin Relayer with `x402` plugin
+- Redis-backed relayer state
 
-## Phase 1: Infrastructure Setup
+This is a practical deployment baseline, not a full production certification guide.
 
-### 1.1 Configure Production Environment
+## Environments
 
-Create `.env.production`:
+### Local
 
-```bash
-# Production Environment Configuration
+Use local for:
 
-# Relayer Configuration
-KEYSTORE_PASSPHRASE=<secure-passphrase>
-RELAYER_API_KEY=<production-api-key>
+- frontend and API development
+- demo validation
+- relayer plugin smoke testing
 
-# Stellar Mainnet
-NETWORK=stellar:mainnet
-STELLAR_ADDRESS=<your-mainnet-stellar-address>
+Stack:
 
-# OpenZeppelin Channels Service (recommended for high throughput)
-CHANNELS_API_KEY=<channels-api-key>
-CHANNELS_FUND_ADDRESS=<channel-funding-address>
+- Next.js on `3000`
+- API on `4021`
+- Relayer on `8080`
+- Redis on `6379`
 
-# Facilitator URLs (Mainnet)
-FACILITATOR_URL=https://channels.openzeppelin.com/x402
-CHANNELS_SERVICE_URL=https://channels.openzeppelin.com
+### Production
 
-# Supported Assets (Mainnet contract addresses)
-USDC_ASSET=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
-PYUSD_ASSET=KGZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
-EURC_ASSET=HGZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+Production should add:
 
-# API Configuration
-API_PORT=4021
-FRONTEND_URL=https://your-domain.com
+- managed secrets
+- HTTPS termination
+- centralized logs
+- health checks and alerting
+- restricted network exposure
+- wallet and signing operational controls
 
-# Webhook for payment notifications
-WEBHOOK_URL=https://your-domain.com/api/webhooks/payments
+## Required Environment Variables
 
-# Logging
-LOG_LEVEL=warn
-NODE_ENV=production
-```
+### Web
 
-### 1.2 Update Relayer Configuration
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_STELLAR_PAY_TO`
+- `NEXT_PUBLIC_WEBHOOK_URL` optional
 
-Edit `relayer/config/config.json` for mainnet:
+### API
 
-```json
-{
-  "relayers": [
-    {
-      "id": "stellar-mainnet",
-      "name": "Stellar Mainnet Relayer",
-      "network": "mainnet",
-      "paused": false,
-      "network_type": "stellar",
-      "signer_id": "stellar-mainnet-signer",
-      "policies": {
-        "fee_payment_strategy": "relayer",
-        "min_balance": 0,
-        "max_transaction_value": "100000000000",
-        "allowed_operations": [
-          "payment",
-          "pathPaymentStrictSend",
-          "invokeHostFunction"
-        ],
-        "sponsored_transactions": true
-      }
-    }
-  ],
-  "signers": [
-    {
-      "id": "stellar-mainnet-signer",
-      "type": "local",
-      "network": "mainnet",
-      "config": {
-        "path": "keys/stellar-mainnet-signer.json",
-        "passphrase": {
-          "type": "env",
-          "value": "KEYSTORE_PASSPHRASE"
-        }
-      }
-    }
-  ],
-  "plugins": [
-    {
-      "id": "x402",
-      "path": "plugins/x402/index.ts",
-      "emit_logs": false,
-      "emit_traces": false,
-      "raw_response": true,
-      "forward_logs": true,
-      "allow_get_invocation": true,
-      "timeout": 30,
-      "config": {
-        "networks": [
-          {
-            "network": "stellar:mainnet",
-            "type": "stellar",
-            "relayer_id": "stellar-mainnet",
-            "assets": [
-              "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-            ],
-            "channel_service_api_url": "https://channels.openzeppelin.com",
-            "channel_service_api_key": "${CHANNELS_API_KEY}",
-            "channel_service_fund_relayer_address": "${CHANNELS_FUND_ADDRESS}"
-          }
-        ]
-      }
-    }
-  ]
-}
-```
+- `API_PORT` or `PORT`
+- `STELLAR_ADDRESS`
+- `FACILITATOR_URL`
+- `RELAYER_API_KEY`
+- `NETWORK`
 
-### 1.3 Generate Keystore
+### Relayer
+
+- `KEYSTORE_PASSPHRASE`
+- Redis connection details
+- any network-specific facilitator configuration
+
+## Local Deployment
+
+### 1. Install dependencies
 
 ```bash
-# Navigate to relayer config directory
-cd relayer/config/keys
-
-# Generate keystore for mainnet signer
-# (Use Stellar Laboratory or CLI tools)
-stellar keys generate --mainnet stellar-mainnet-signer
-
-# Encrypt keystore with passphrase
-stellar keys encrypt stellar-mainnet-signer
+npm install
+cd apps/api && npm install
 ```
 
-## Phase 2: Docker Deployment
-
-### 2.1 Update Docker Compose for Production
-
-Create `infra/docker/docker-compose.prod.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  redis:
-    image: redis:7-alpine
-    container_name: stellar-x402-redis
-    restart: always
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  relayer:
-    build:
-      context: ../../relayer
-      dockerfile: Dockerfile
-    container_name: stellar-x402-relayer
-    restart: always
-    environment:
-      - DATABASE_URL=redis://redis:6379
-      - API_PORT=8080
-      - LOG_LEVEL=warn
-      - METRICS_ENABLED=true
-      - KEYSTORE_PASSPHRASE=${KEYSTORE_PASSPHRASE}
-    ports:
-      - "127.0.0.1:8080:8080"  # Bind to localhost only
-    volumes:
-      - ../../relayer/config/config.json:/app/config/config.json
-      - ../../relayer/config/keys:/app/config/keys
-    depends_on:
-      redis:
-        condition: service_healthy
-
-  api:
-    build:
-      context: ../../apps/api
-      dockerfile: Dockerfile
-    container_name: stellar-x402-api
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - PORT=4021
-      - STELLAR_ADDRESS=${STELLAR_ADDRESS}
-      - FACILITATOR_URL=${FACILITATOR_URL}
-      - RELAYER_API_KEY=${RELAYER_API_KEY}
-      - NETWORK=${NETWORK}
-      - WEBHOOK_URL=${WEBHOOK_URL}
-    ports:
-      - "127.0.0.1:4021:4021"  # Bind to localhost only
-    depends_on:
-      - relayer
-
-  web:
-    build:
-      context: ../../stellar-x402
-      dockerfile: Dockerfile
-    container_name: stellar-x402-web
-    restart: always
-    environment:
-      - NEXT_PUBLIC_API_URL=https://your-domain.com/api
-      - NEXT_PUBLIC_FACILITATOR_URL=${FACILITATOR_URL}
-      - NEXT_PUBLIC_NETWORK=${NETWORK}
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-
-  nginx:
-    image: nginx:alpine
-    container_name: stellar-x402-nginx
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/nginx/ssl
-    depends_on:
-      - web
-      - api
-
-volumes:
-  redis_data:
-```
-
-### 2.2 Nginx Configuration
-
-Create `infra/docker/nginx.conf`:
-
-```nginx
-events {
-    worker_connections 1024;
-}
-
-http {
-    upstream web {
-        server web:3000;
-    }
-
-    upstream api {
-        server api:4021;
-    }
-
-    # Redirect HTTP to HTTPS
-    server {
-        listen 80;
-        server_name your-domain.com;
-        return 301 https://$server_name$request_uri;
-    }
-
-    # HTTPS Server
-    server {
-        listen 443 ssl http2;
-        server_name your-domain.com;
-
-        ssl_certificate /etc/nginx/ssl/fullchain.pem;
-        ssl_certificate_key /etc/nginx/ssl/privkey.pem;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
-
-        # Frontend
-        location / {
-            proxy_pass http://web;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # API
-        location /api {
-            proxy_pass http://api;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # Health check endpoint (public)
-        location /health {
-            proxy_pass http://api/health;
-            access_log off;
-        }
-    }
-}
-```
-
-## Phase 3: SSL Certificate
-
-### 3.1 Obtain SSL Certificate (Let's Encrypt)
+### 2. Configure environment
 
 ```bash
-# Install Certbot
-sudo apt-get install certbot
-
-# Obtain certificate
-sudo certbot certonly --standalone -d your-domain.com
-
-# Certificates will be at:
-# /etc/letsencrypt/live/your-domain.com/fullchain.pem
-# /etc/letsencrypt/live/your-domain.com/privkey.pem
-
-# Copy to Docker volume
-sudo mkdir -p infra/docker/ssl
-sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem infra/docker/ssl/
-sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem infra/docker/ssl/
+cp .env.example .env
 ```
 
-## Phase 4: Deploy
-
-### 4.1 Start Production Services
+### 3. Start infrastructure
 
 ```bash
 cd infra/docker
-
-# Start all services
-docker-compose -f docker-compose.prod.yml up -d
-
-# Check status
-docker-compose -f docker-compose.prod.yml ps
-
-# View logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose up -d
 ```
 
-### 4.2 Verify Deployment
+### 4. Run applications
 
 ```bash
-# Health check
-curl https://your-domain.com/health
+# terminal 1
+npm run dev
 
-# Test API endpoint (should return 402 Payment Required)
-curl https://your-domain.com/api/weather
-
-# Check facilitator connection
-curl -H "Authorization: Bearer $RELAYER_API_KEY" \
-     https://your-domain.com/api/v1/plugins/x402/call/supported
+# terminal 2
+cd apps/api
+npm run dev
 ```
 
-## Phase 5: Smart Account Deployment
+## Container Topology
 
-### 5.1 Install Soroban CLI
+The current Docker Compose file provisions:
 
-```bash
-# Install Soroban CLI
-cargo install soroban-cli
+- `redis`
+- `relayer`
+- `api`
 
-# Verify installation
-soroban --version
-```
+The web app currently runs outside Compose during development. For production, either add a dedicated web service image or deploy the Next.js app separately behind the same domain strategy.
 
-### 5.2 Deploy Smart Account Contract
+## Recommended Production Shape
 
-```bash
-# Navigate to contracts directory
-cd contracts/smart-account
+### Ingress
 
-# Build contract (if building from source)
-soroban contract build
+- Put a reverse proxy or managed load balancer in front
+- Terminate TLS at the edge
+- Route `/` to web and `/api` to the backend surface
 
-# Deploy to mainnet
-soroban contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/smart_account.wasm \
-  --source <your-source-account> \
-  --network mainnet
+### API Hardening
 
-# Initialize account with configuration
-soroban contract invoke \
-  --id <contract-id> \
-  --source <your-source-account> \
-  --network mainnet \
-  -- \
-  initialize \
-  --threshold 2 \
-  --signers '[{"key": "GABC...", "weight": 1}, ...]'
-```
+- Validate all env vars on startup
+- Restrict CORS to known origins
+- Add rate limits and request timeouts
+- Emit structured logs with request IDs
 
-## Phase 6: Monitoring & Maintenance
+### Relayer Hardening
 
-### 6.1 Set Up Monitoring
+- Keep signer material out of the repo
+- Use managed secret storage
+- Restrict plugin exposure to the minimum required routes
+- Monitor settlement failures and replay conditions
 
-```bash
-# Enable Prometheus metrics in relayer config
-# Metrics available at: http://localhost:9090/metrics
+### Operational Monitoring
 
-# Set up Grafana dashboard
-docker run -d -p 3001:3000 grafana/grafana
-```
+- uptime checks for `/health`
+- error-rate alerts for API and relayer
+- payment failure dashboards
+- wallet and settlement anomaly alerts
 
-### 6.2 Log Aggregation
+## What Is Missing Before True Production Readiness
 
-```bash
-# View all logs
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Export logs for analysis
-docker-compose -f docker-compose.prod.yml logs > logs.txt
-```
-
-### 6.3 Backup Strategy
-
-```bash
-# Backup Redis data
-docker exec stellar-x402-redis redis-cli SAVE
-
-# Backup keystores
-cp -r relayer/config/keys /secure/backup/location
-
-# Backup configuration
-cp relayer/config/config.json /secure/backup/location
-```
-
-## Security Checklist
-
-- [ ] Keystore files encrypted with strong passphrase
-- [ ] Relayer not exposed to public internet (localhost only)
-- [ ] HTTPS enabled with valid SSL certificate
-- [ ] API keys rotated regularly
-- [ ] Firewall rules configured
-- [ ] Monitoring and alerting set up
-- [ ] Backup strategy implemented
-- [ ] Compliance procedures documented
-- [ ] Emergency freeze procedures tested
-
-## Post-Deployment
-
-1. **Test with small transactions** before going live
-2. **Monitor first 24 hours** closely for any issues
-3. **Set up alerts** for failed transactions and low balances
-4. **Document runbooks** for common issues
-5. **Train team** on compliance procedures
-
-## Support
-
-- **OpenZeppelin Docs**: https://docs.openzeppelin.com/relayer
-- **Stellar Dev Discord**: https://discord.gg/stellar
-- **x402 Protocol**: https://x402.org
+- environment schema validation
+- CI/CD deployment pipeline
+- managed mainnet secret lifecycle
+- real compliance provider integrations
+- formal audit logging and retention strategy
+- API schema docs generated from code

@@ -3,7 +3,7 @@
  * Multi-asset support, compliance controls, and batch settlement
  */
 
-import { SorobanRpc, Transaction, TransactionBuilder, Networks, Address, Asset } from "@stellar/stellar-sdk";
+import { Transaction, Asset } from "@stellar/stellar-sdk";
 
 export interface InstitutionalConfig {
   complianceEnabled: boolean;
@@ -53,7 +53,9 @@ export class ComplianceService {
    * Perform KYC verification
    * Used for U.S. Bank, PayPal integrations
    */
-  async verifyKYC(userId: string, userData: any): Promise<ComplianceCheck> {
+  async verifyKYC(userId: string, userData: Record<string, unknown>): Promise<ComplianceCheck> {
+    void userData;
+
     // In production, integrate with actual KYC provider
     return {
       type: "kyc",
@@ -69,6 +71,8 @@ export class ComplianceService {
    * Check against OFAC, UN, EU sanctions lists
    */
   async screenSanctions(address: string, name?: string): Promise<ComplianceCheck> {
+    void name;
+
     // In production, integrate with sanctions screening API
     return {
       type: "sanctions",
@@ -96,6 +100,8 @@ export class ComplianceService {
    * Enhanced due diligence for high-value transactions
    */
   async enhancedDueDiligence(userId: string, amount: number): Promise<ComplianceCheck[]> {
+    void amount;
+
     const checks = await Promise.all([
       this.verifyKYC(userId, {}),
       this.screenSanctions(userId),
@@ -414,6 +420,8 @@ export class InstitutionalFeaturesManager {
     amount: number,
     asset: string
   ): Promise<{ allowed: boolean; reason?: string }> {
+    void asset;
+
     // Check spending limits
     const limitCheck = this.spendingLimits.checkLimit(userId, amount);
     if (!limitCheck.allowed) {

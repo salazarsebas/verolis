@@ -2,7 +2,7 @@
  * x402 Client Utilities Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   parsePrice,
   createPaymentPayload,
@@ -13,9 +13,8 @@ import {
 
 // Mock Freighter API
 vi.mock("@stellar/freighter-api", () => ({
-  connect: vi.fn(() => Promise.resolve({ address: "GTEST123" })),
-  isConnected: vi.fn(() => Promise.resolve(false)),
-  disconnect: vi.fn(() => Promise.resolve()),
+  requestAccess: vi.fn(() => Promise.resolve({ address: "GTEST123" })),
+  isConnected: vi.fn(() => Promise.resolve({ isConnected: false })),
 }));
 
 describe("x402 Client", () => {
@@ -90,9 +89,9 @@ describe("x402 Client", () => {
   });
 
   describe("disconnectWallet", () => {
-    it("should disconnect from Freighter wallet", async () => {
+    it("should resolve without throwing", async () => {
       await disconnectWallet();
-      expect(vi.mocked(await import("@stellar/freighter-api")).disconnect).toHaveBeenCalled();
+      await expect(disconnectWallet()).resolves.toBeUndefined();
     });
   });
 });

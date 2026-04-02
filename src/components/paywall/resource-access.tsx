@@ -8,6 +8,8 @@ import { Loader2, Unlock, Lock, ExternalLink } from "lucide-react";
 import { Paywall } from "./paywall";
 import { PaymentRequirements } from "@/lib/x402/client";
 
+type ResourceResponse = Record<string, unknown>;
+
 interface ResourceAccessProps {
   endpoint: string;
   method: "GET" | "POST";
@@ -21,7 +23,7 @@ export function ResourceAccess({ endpoint, method, requirements, description, ap
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePaymentSuccess = (data: any) => {
+  const handlePaymentSuccess = (data: ResourceResponse) => {
     setIsUnlocked(true);
     console.log("Resource data:", data);
   };

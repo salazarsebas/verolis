@@ -38,7 +38,7 @@ export default function SmartAccountsPage() {
                 OpenZeppelin Smart Account Contracts
               </h3>
               <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
-                These accounts use OpenZeppelin's audited Soroban contracts with composable authorization,
+                These accounts use OpenZeppelin&apos;s audited Soroban contracts with composable authorization,
                 spending limits, and multisig support. Perfect for institutional treasury management and
                 compliance-controlled payments.
               </p>

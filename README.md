@@ -1,29 +1,46 @@
-# Verolis: Institutional x402 on Stellar
+# Verolis
 
-Verolis is an institutional discovery and monetization layer built on Stellar.
-Its goal is not to showcase generic paywalled APIs, but to identify where `x402`
-can unlock real institutional adoption across partners linked to the Stellar ecosystem:
+Verolis is an institutional commercialization layer for Stellar. It turns payment-rail intelligence, compliance workflows, and tokenized-asset access into request-priced APIs powered by `x402`.
 
-- PayPal
-- Visa
-- Wirex
-- MoneyGram
-- Franklin Templeton
-- U.S. Bank
-- AirTM
+This repository is not a generic crypto demo. It is a product thesis and technical foundation for selling institutional infrastructure:
 
-The current product thesis is:
+- Discovery APIs for partner readiness and monetizable rails
+- `x402`-gated premium endpoints on Stellar
+- Smart-account controls for treasury and policy enforcement
+- Trustless Work escrow flows for milestone-based implementation deals
+- OpenZeppelin Relayer integration for facilitator-backed settlement
 
-1. Map institutional partners, rails, stablecoins and tokenized-asset workflows.
-2. Package that intelligence as high-value request-priced APIs using `x402`.
-3. Add smart-account controls, policy checks and facilitator-backed settlement.
-4. Use Trustless Work escrows for milestone-based institutional pilots and implementation agreements.
+## Why This Matters
 
-## What Changed
+Most API monetization products stop at API keys and Stripe billing. Verolis takes a different position:
 
-The project has been refocused around institutional adoption instead of generic demo endpoints such as weather and market data.
+- Price infrastructure access per request, not per seat
+- Remove invoice friction for machines, agents, and cross-border workflows
+- Package institutional knowledge as a paid product
+- Turn Stellar ecosystem distribution into something sellable to banks, fintechs, remittance players, and asset managers
 
-New paid API surfaces:
+The commercialization angle is the differentiator. A buyer should immediately understand where revenue comes from:
+
+- MoneyGram: corridor lookup, cash-out quoting, remittance intelligence
+- PayPal: PYUSD merchant treasury and settlement workflows
+- Franklin Templeton: tokenized treasury access and eligibility APIs
+- Visa and Wirex: routing, treasury, and payout orchestration intelligence
+- U.S. Bank: policy-heavy compliance and approval workflows
+- AirTM: payroll and cross-border disbursement APIs
+
+## Product Surface
+
+### Frontend
+
+- Landing page with product positioning and institutional narrative
+- Demo page that exercises paid endpoints
+- Dashboard for readiness, endpoint metrics, and escrow operations
+- Smart accounts page for treasury-control concepts
+- Trustless Work page for milestone escrow packaging
+
+### API
+
+Paid endpoints:
 
 - `GET /api/partners`
 - `GET /api/partners/:slug/readiness`
@@ -31,107 +48,96 @@ New paid API surfaces:
 - `POST /api/compliance/screening-quote`
 - `GET /api/assets/tokenized-access`
 
-New escrow planning surface:
+Operational endpoints:
 
-- `/trustless-work`
-
-New Trustless Work building blocks:
-
-- `src/lib/trustless-work/payloads.ts`
-- `src/lib/trustless-work/executor.ts`
-- `src/lib/trustless-work/status.ts`
-
-The frontend now mirrors that same domain:
-
-- Landing page: institutional adoption thesis
-- Demo: paid institutional endpoints
-- Dashboard: readiness and monetization console
+- `GET /health`
+- `GET /api/supported`
 
 ## Architecture
 
 ```text
-Next.js frontend
-  -> institutional discovery UI
-  -> x402 demo paywall components
-  -> adoption dashboard
+Next.js app
+  -> product narrative, dashboard, demo UX
+  -> client-side x402 payment helpers
 
 Express API
-  -> @x402/express middleware
-  -> Stellar exact payment scheme
-  -> institutional partner/readiness/rail endpoints
+  -> institutional catalog and pricing model
+  -> x402 middleware protection
+  -> readiness, rails, compliance, tokenized asset endpoints
 
-OpenZeppelin Relayer + x402 facilitator plugin
-  -> verify / settle / supported flows
+OpenZeppelin Relayer + x402 plugin
+  -> facilitator-backed verification / settlement
 
 Stellar
-  -> stablecoin rails
-  -> auth-entry signing for production x402 flows
-  -> smart-account policy enforcement
+  -> testnet/mainnet settlement surface
+  -> stablecoin and tokenized-asset flows
+  -> Soroban smart-account policy enforcement
 ```
 
-## Current Status
+## Repository Layout
 
-What is implemented:
+```text
+src/
+  app/                  Next.js routes
+  components/           UI, dashboard, and paywall components
+  lib/                  x402 client helpers, institutional services, trustless-work flows
 
-- Institutional partner catalog for the target organizations
-- Paid endpoints aligned with partner discovery and adoption analysis
-- OpenZeppelin relayer/facilitator configuration
-- Smart-account UX for policy-oriented treasury controls
-- Trustless Work escrow blueprints for multi-release institutional pilots
-- Trustless Work REST client scaffolding for deploy, fund, approve, release and dispute flows
-- Payload generation from institutional blueprints into deployable multi-release escrow requests
-- Freighter-based executor scaffold to sign returned XDRs and send them through Trustless Work helpers
+apps/api/
+  src/                  Express API and institutional payment catalog
 
-What remains roadmap:
+contracts/
+  smart-account/        Soroban smart-account config
 
-- Production-grade browser `x402` flow with real Soroban auth-entry signing
-- Live institution data feeds instead of curated internal scoring
-- Mainnet asset configuration and partner-specific settlement paths
-- Compliance provider integrations
-- Signed XDR submission flow wired from browser wallets into Trustless Work transactions
+relayer/
+  plugins/x402/         Facilitator plugin setup
+  config/               Relayer runtime configuration
 
-Important:
-The browser client is still a demo helper. Production Stellar `x402` requires a wallet/signer flow that can sign Soroban auth entries.
+infra/docker/           Local infrastructure orchestration
+docs/                   Product, architecture, deployment, and integration docs
+scripts/                Local bootstrap helpers
+```
 
-## Local Development
+## Local Setup
 
 ### Prerequisites
 
 - Node.js 18+
-- Docker
-- A Stellar-compatible wallet for frontend demos
+- Docker with Docker Compose
+- A Stellar-compatible wallet for browser demos
 
-### Install
+### 1. Install dependencies
 
 ```bash
 npm install
 cd apps/api && npm install
 ```
 
-### Environment
-
-Create `.env` values for:
+### 2. Configure environment
 
 ```bash
-STELLAR_ADDRESS=...
-FACILITATOR_URL=http://localhost:8080/api/v1/plugins/x402/call
-RELAYER_API_KEY=...
-NETWORK=stellar:testnet
-NEXT_PUBLIC_API_URL=http://localhost:4021
-NEXT_PUBLIC_STELLAR_PAY_TO=...
+cp .env.example .env
 ```
 
-### Infrastructure
+Required variables:
+
+- `STELLAR_ADDRESS`
+- `FACILITATOR_URL`
+- `RELAYER_API_KEY`
+- `NETWORK`
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_STELLAR_PAY_TO`
+
+### 3. Start infrastructure
 
 ```bash
 cd infra/docker
 docker compose up -d
 ```
 
-### App servers
+### 4. Start the applications
 
 ```bash
-# root
+# frontend
 npm run dev
 
 # api
@@ -139,36 +145,42 @@ cd apps/api
 npm run dev
 ```
 
-## Project Direction
+### One-command bootstrap
 
-The strongest near-term commercialization paths in this repo are:
+```bash
+./scripts/quickstart.sh
+```
 
-- MoneyGram: corridor lookup, payout eligibility, cash-out quoting
-- PayPal: PYUSD treasury and merchant APIs
-- Franklin Templeton: tokenized treasury access and eligibility workflows
-- Visa/Wirex: routing intelligence and treasury settlement APIs
-- U.S. Bank: policy-heavy compliance and approval APIs
-- AirTM: payroll and cross-border disbursement APIs
+## Current Reality
 
-Trustless Work fits the second phase of those deals:
+What is solid today:
 
-- `x402`: charge discovery, scoring and operational APIs per request
-- Trustless Work: escrow implementation work by milestone
+- Clear institutional positioning
+- Paid endpoint model aligned to real buyer personas
+- Frontend demo and dashboard flows
+- API tests
+- Relayer and Docker scaffolding
+- Trustless Work payload and template helpers
 
-## References
+What is still demo or placeholder territory:
 
-Official and primary references used for the new direction:
+- Browser-native production signing for Stellar `x402`
+- Live partner, compliance, and market data integrations
+- Production-grade shared package boundaries between web and API
+- Mainnet-ready secrets, telemetry, and audit logging
+- Real transactional analytics instead of mocked dashboard metrics
 
-- Stellar x402 docs: https://developers.stellar.org/docs/build/agentic-payments/x402
-- Stellar x402 quickstart: https://developers.stellar.org/docs/build/agentic-payments/x402/quickstart-guide
-- Stellar MPP docs: https://developers.stellar.org/docs/build/agentic-payments/mpp
-- Stellar x402 monorepo: https://github.com/stellar/x402-stellar
-- OpenZeppelin Stellar x402 facilitator guide: https://docs.openzeppelin.com/relayer/1.4.x/guides/stellar-x402-facilitator-guide
-- Stellar signing guide: https://developers.stellar.org/docs/build/guides/transactions/signing-soroban-invocations
-- Stellar Quickstart tooling: https://developers.stellar.org/docs/tools/quickstart
+## Documentation
 
-## Notes
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Deployment](./docs/DEPLOYMENT.md)
+- [Institutional Integration](./docs/INSTITUTIONAL_INTEGRATION.md)
+- [Project Summary](./docs/PROJECT_SUMMARY.md)
 
-- Prefer Stellar RPC-era tooling and current docs over older Horizon-first examples.
-- Use `@x402/fetch` or the official Stellar x402 client patterns when wiring a real payer flow.
-- Keep browser UX explicit about what is simulated versus what is facilitator-settled on-chain.
+## Positioning
+
+Verolis should be presented as infrastructure for teams that want to monetize institutional financial workflows on Stellar without building custom billing rails first.
+
+That means the pitch is not "a payment demo." The pitch is:
+
+> sell premium financial infrastructure as APIs, settle access with `x402`, and expand from read-heavy intelligence products into policy-controlled institutional execution.

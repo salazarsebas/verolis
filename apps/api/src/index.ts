@@ -230,8 +230,10 @@ export function createApp() {
     });
   });
 
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    if (err.status === 402) {
+  app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    void next;
+
+    if (isPaymentRequiredError(err)) {
       return res.status(402).json({
         error: "Payment Required",
         message: "A valid x402 payment is required to access this institutional resource.",
@@ -242,11 +244,19 @@ export function createApp() {
     console.error("API error:", err);
     return res.status(500).json({
       error: "Internal Server Error",
-      message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+      message: process.env.NODE_ENV === "development" && err instanceof Error
+        ? err.message
+        : "Something went wrong",
     });
   });
 
   return app;
+}
+
+function isPaymentRequiredError(
+  error: unknown
+): error is { status: number; paymentRequired?: unknown } {
+  return typeof error === "object" && error !== null && "status" in error && (error as { status?: unknown }).status === 402;
 }
 
 const app = createApp();

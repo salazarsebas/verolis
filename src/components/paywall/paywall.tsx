@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Wallet, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
 import { connectWallet, disconnectWallet, makeX402Request, PaymentRequirements } from "@/lib/x402/client";
 
+type ResourceResponse = Record<string, unknown>;
+
 interface PaywallProps {
   requirements: PaymentRequirements;
   resourceUrl: string;
   description: string;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ResourceResponse) => void;
   children?: React.ReactNode;
   method?: "GET" | "POST";
   requestBody?: Record<string, unknown>;
@@ -31,7 +33,7 @@ export function Paywall({
   const [isPaying, setIsPaying] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "paying" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [resourceData, setResourceData] = useState<any>(null);
+  const [resourceData, setResourceData] = useState<ResourceResponse | null>(null);
 
   const handleConnect = useCallback(async () => {
     try {
@@ -59,7 +61,7 @@ export function Paywall({
         activeWallet = await connectWallet();
         setWalletAddress(activeWallet);
         setIsConnected(true);
-      } catch (error) {
+      } catch {
         setErrorMessage("Failed to connect wallet");
         return;
       }
@@ -79,16 +81,16 @@ export function Paywall({
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as ResourceResponse;
         setResourceData(data);
         setPaymentStatus("success");
         onSuccess?.(data);
       } else {
         throw new Error(`Payment failed: ${response.status}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       setPaymentStatus("error");
-      setErrorMessage(error.message || "Payment failed. Please try again.");
+      setErrorMessage(error instanceof Error ? error.message : "Payment failed. Please try again.");
       console.error(error);
     } finally {
       setIsPaying(false);

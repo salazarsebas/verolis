@@ -1,14 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  // Exclude apps/api from Next.js build
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  // Allow eslint errors during build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

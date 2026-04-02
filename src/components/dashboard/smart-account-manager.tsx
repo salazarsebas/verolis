@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Edit, Shield, Key, DollarSign, Clock } from "lucide-react";
+import { Plus, Edit, Shield, Key, DollarSign, Clock } from "lucide-react";
 
 interface Signer {
   id: string;
@@ -34,7 +34,7 @@ interface Policy {
   id: string;
   type: "spending-limit" | "time-lock" | "multisig" | "allowlist";
   description: string;
-  config: any;
+  config: Record<string, string | number | boolean>;
 }
 
 interface SmartAccount {
@@ -49,7 +49,7 @@ interface SmartAccount {
 }
 
 export function SmartAccountManager() {
-  const [accounts, setAccounts] = useState<SmartAccount[]>([
+  const [accounts] = useState<SmartAccount[]>([
     {
       id: "1",
       address: "GABC123...DEF456",
@@ -129,12 +129,14 @@ export function SmartAccountManager() {
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Account
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={(
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Account
+              </Button>
+            )}
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create Smart Account</DialogTitle>

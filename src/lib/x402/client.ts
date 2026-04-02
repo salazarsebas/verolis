@@ -3,7 +3,14 @@
  * Browser demo helper for wallet connection and manual x402 request retries.
  */
 
-import { connect, isConnected, disconnect } from "@stellar/freighter-api";
+import { isConnected, requestAccess } from "@stellar/freighter-api";
+
+interface DemoAuthEntry {
+  address: string;
+  nonce: string;
+  expiration: number;
+  payload: PaymentPayload["payload"];
+}
 
 export interface PaymentRequirements {
   scheme: string;
@@ -23,7 +30,7 @@ export interface PaymentPayload {
     description: string;
   };
   signature?: string;
-  authEntries?: any[];
+  authEntries?: DemoAuthEntry[];
 }
 
 export interface X402Response {
@@ -54,11 +61,20 @@ export function getBrowserX402SupportState() {
  */
 export async function connectWallet(): Promise<string> {
   try {
-    if (!await isConnected()) {
-      const { address } = await connect();
+    const connectionState = await isConnected();
+    if (!connectionState.isConnected) {
+      const { address, error } = await requestAccess();
+      if (error || !address) {
+        throw new Error(error?.message || "Freighter access was not granted");
+      }
       return address;
     }
-    const { address } = await connect();
+
+    const { address, error } = await requestAccess();
+    if (error || !address) {
+      throw new Error(error?.message || "Freighter access was not granted");
+    }
+
     return address;
   } catch (error) {
     console.error("Failed to connect wallet:", error);
@@ -70,7 +86,7 @@ export async function connectWallet(): Promise<string> {
  * Disconnect from Freighter wallet
  */
 export async function disconnectWallet(): Promise<void> {
-  await disconnect();
+  return Promise.resolve();
 }
 
 /**
@@ -113,8 +129,9 @@ export async function signPaymentAuthorization(
 ): Promise<PaymentPayload> {
   try {
     // Connect to Freighter if not already connected
-    if (!await isConnected()) {
-      await connect();
+    const connectionState = await isConnected();
+    if (!connectionState.isConnected) {
+      await connectWallet();
     }
 
     // Demo-only placeholder. Production x402 must sign the auth entry produced
@@ -200,7 +217,6 @@ export async function makeX402Request(
  * Parse x402 response headers
  */
 export function parseX402Response(response: Response): X402Response {
-  const x402Version = response.headers.get("x402-version");
   const paymentRequired = response.headers.get("payment-required");
   const paymentResponse = response.headers.get("payment-response");
 
@@ -230,7 +246,7 @@ export function parseX402Response(response: Response): X402Response {
 /**
  * Get supported payment methods from facilitator
  */
-export async function getSupportedPayments(facilitatorUrl: string): Promise<any> {
+export async function getSupportedPayments(facilitatorUrl: string): Promise<unknown> {
   try {
     const response = await fetch(`${facilitatorUrl}/supported`, {
       method: "POST",
@@ -252,7 +268,7 @@ export async function verifyPayment(
   facilitatorUrl: string,
   payment: PaymentPayload,
   apiKey: string
-): Promise<any> {
+): Promise<unknown> {
   try {
     const response = await fetch(`${facilitatorUrl}/verify`, {
       method: "POST",
@@ -276,7 +292,7 @@ export async function settlePayment(
   facilitatorUrl: string,
   payment: PaymentPayload,
   apiKey: string
-): Promise<any> {
+): Promise<unknown> {
   try {
     const response = await fetch(`${facilitatorUrl}/settle`, {
       method: "POST",

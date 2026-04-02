@@ -30,7 +30,11 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+else
     echo "❌ Docker Compose is not installed. Please install Docker Compose first."
     exit 1
 fi
@@ -69,12 +73,12 @@ echo "🚀 Starting infrastructure (Redis, Relayer, API)..."
 cd "$PROJECT_ROOT/infra/docker"
 
 # Check if containers are already running
-if docker-compose ps | grep -q "Up"; then
+if $COMPOSE_CMD ps | grep -q "Up"; then
     echo "⚠️  Infrastructure already running. Stopping first..."
-    docker-compose down
+    $COMPOSE_CMD down
 fi
 
-docker-compose up -d
+$COMPOSE_CMD up -d
 echo "✅ Infrastructure started"
 echo ""
 
@@ -86,7 +90,7 @@ sleep 10
 if curl -s http://localhost:8080/health > /dev/null 2>&1; then
     echo "✅ Relayer is healthy"
 else
-    echo "⚠️  Relayer may not be ready yet. Check logs with: docker-compose logs -f"
+  echo "⚠️  Relayer may not be ready yet. Check logs with: docker-compose logs -f"
 fi
 
 cd "$PROJECT_ROOT"
@@ -103,7 +107,7 @@ echo "║  - Dashboard: http://localhost:3000/dashboard             ║"
 echo "║  - API: http://localhost:4021                             ║"
 echo "║                                                           ║"
 echo "║  To stop all services:                                    ║"
-echo "║  $ cd infra/docker && docker-compose down                 ║"
+echo "║  $ cd infra/docker && $COMPOSE_CMD down                   ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 

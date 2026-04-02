@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Activity, Wallet, Clock, CheckCircle } from "lucide-react";
@@ -8,10 +9,45 @@ interface StatsCardProps {
   title: string;
   value: string;
   description?: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   trend?: string;
   trendUp?: boolean;
 }
+
+const DEFAULT_TRANSACTIONS: Transaction[] = [
+  {
+    id: "txn-001",
+    timestamp: "2026-04-02T11:58:00.000Z",
+    endpoint: "/api/partners",
+    amount: "$0.02",
+    status: "completed",
+    network: "stellar:testnet",
+    asset: "PYUSD",
+    from: "PayPal",
+    transactionHash: "abc123...",
+  },
+  {
+    id: "txn-002",
+    timestamp: "2026-04-02T11:57:00.000Z",
+    endpoint: "/api/partners/moneygram/readiness",
+    amount: "$0.03",
+    status: "completed",
+    network: "stellar:testnet",
+    asset: "USDC",
+    from: "MoneyGram",
+    transactionHash: "def456...",
+  },
+  {
+    id: "txn-003",
+    timestamp: "2026-04-02T11:56:00.000Z",
+    endpoint: "/api/assets/tokenized-access",
+    amount: "$0.04",
+    status: "pending",
+    network: "stellar:testnet",
+    asset: "Tokenized Treasuries",
+    from: "Franklin Templeton",
+  },
+];
 
 export function StatsCard({ title, value, description, icon, trend, trendUp }: StatsCardProps) {
   return (
@@ -102,42 +138,7 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ transactions = [] }: RecentTransactionsProps) {
-  const defaultTransactions: Transaction[] = [
-    {
-      id: "txn-001",
-      timestamp: new Date().toISOString(),
-      endpoint: "/api/partners",
-      amount: "$0.02",
-      status: "completed",
-      network: "stellar:testnet",
-      asset: "PYUSD",
-      from: "PayPal",
-      transactionHash: "abc123...",
-    },
-    {
-      id: "txn-002",
-      timestamp: new Date(Date.now() - 60000).toISOString(),
-      endpoint: "/api/partners/moneygram/readiness",
-      amount: "$0.03",
-      status: "completed",
-      network: "stellar:testnet",
-      asset: "USDC",
-      from: "MoneyGram",
-      transactionHash: "def456...",
-    },
-    {
-      id: "txn-003",
-      timestamp: new Date(Date.now() - 120000).toISOString(),
-      endpoint: "/api/assets/tokenized-access",
-      amount: "$0.04",
-      status: "pending",
-      network: "stellar:testnet",
-      asset: "Tokenized Treasuries",
-      from: "Franklin Templeton",
-    },
-  ];
-
-  const txns = transactions.length > 0 ? transactions : defaultTransactions;
+  const txns = transactions.length > 0 ? transactions : DEFAULT_TRANSACTIONS;
 
   return (
     <Card>

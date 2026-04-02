@@ -1,25 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Stellar x402 - Institutional Payments for AI",
-  description: "Enable autonomous AI agents and institutions to make programmatic payments on Stellar with <5s settlement. Built with OpenZeppelin Relayer.",
-  keywords: ["Stellar", "x402", "payments", "AI", "blockchain", "OpenZeppelin", "Soroban"],
-  authors: [{ name: "Stellar x402 Team" }],
+  title: "Verolis | Institutional x402 on Stellar",
+  description:
+    "Verolis packages institutional payment intelligence, compliance workflows, and tokenized-asset access into request-priced x402 APIs on Stellar.",
+  keywords: ["Verolis", "Stellar", "x402", "institutional payments", "Soroban", "OpenZeppelin", "stablecoins"],
+  authors: [{ name: "Verolis" }],
   openGraph: {
-    title: "Stellar x402 - Institutional Payments for AI",
-    description: "Next-generation payment infrastructure for institutions and AI agents",
+    title: "Verolis | Institutional x402 on Stellar",
+    description: "Commercialize institutional payment intelligence and settlement workflows with x402 on Stellar.",
     type: "website",
   },
 };
@@ -31,11 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
